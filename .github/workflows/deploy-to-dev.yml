@@ -45,7 +45,7 @@ jobs:
         docker build \
           -f WorkerService1/Dockerfile \
           -t $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} \
-          DemoDeployWorkerNetToAks
+          .
 
     - name: Push Image
       run: |
