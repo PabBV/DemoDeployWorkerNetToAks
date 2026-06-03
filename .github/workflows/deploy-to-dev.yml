@@ -43,7 +43,7 @@ jobs:
     - name: Build Image
       run: |
         docker build \
-          -f DemoDeployWorkerNetToAks/WorkerService1/Dockerfile \
+          -f WorkerService1/Dockerfile \
           -t $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} \
           DemoDeployWorkerNetToAks
 
