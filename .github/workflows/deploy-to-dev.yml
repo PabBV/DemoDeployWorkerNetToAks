@@ -1,0 +1,89 @@
+name: DEV - Deploy Worker .NET 10 to AKS
+
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ACR_NAME: acrforaks01
+  IMAGE_NAME: worker-app-net10
+
+  RESOURCE_GROUP: rg-test-04
+  AKS_CLUSTER: aks-test-04
+
+jobs:
+
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    environment: dev
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Login ACR
+      run: |
+        az acr login --name $ACR_NAME
+    
+    - name: Build Image
+      run: |
+        docker build \
+          -f WorkerService1/Dockerfile \
+          -t $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} \
+          WorkerService1
+
+    - name: Push Image
+      run: |
+        docker push \
+          $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }}
+
+    - name: AKS Credentials
+      run: |
+        az aks get-credentials \
+          --resource-group $RESOURCE_GROUP \
+          --name $AKS_CLUSTER \
+          --overwrite-existing
+
+    - name: Deploy manifests
+      run: |
+        kubectl apply -f k8s/development
+        
+    - name: Update Deployment Image
+      run: |
+        kubectl set image deployment/worker-app \
+        worker-app=$ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} \
+        -n development
+
+    - name: Verify Rollout
+      run: |
+        kubectl rollout status deployment/worker-app \
+        -n development
+
+    - name: Kubernetes Resources
+      run: |
+        echo "===== DEPLOYMENTS ====="
+        kubectl get deployments -A
+
+        echo "===== PODS ====="
+        kubectl get pods -A
+
+        echo "===== SERVICES ====="
+        kubectl get svc -A
+
+        echo "===== INGRESS ====="
+        kubectl get ingress -A
