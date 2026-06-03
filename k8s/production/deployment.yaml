@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: worker-app
+  namespace: production
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: worker-app
+
+  template:
+    metadata:
+      labels:
+        app: worker-app
+
+    spec:
+      containers:
+      - name: worker-app
+
+        image: acrforaks01.azurecr.io/worker-app-net10-prod:1.0.0
+
+        ports:
+        - containerPort: 8080

@@ -12,7 +12,7 @@ permissions:
 
 env:
   ACR_NAME: acrforaks01
-  IMAGE_NAME: worker-app-net10
+  IMAGE_NAME: worker-app-net10-dev
 
   RESOURCE_GROUP: rg-test-04
   AKS_CLUSTER: aks-test-04
@@ -45,7 +45,7 @@ jobs:
         docker build \
           -f WorkerService1/Dockerfile \
           -t $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.sha }} \
-          WorkerService1
+          .
 
     - name: Push Image
       run: |
